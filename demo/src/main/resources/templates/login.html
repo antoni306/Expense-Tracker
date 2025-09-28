@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/myStyle.css">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <h1>Login</h1>
+        <form action="/check-credentials" method="post">
+            <label for="username" class="login-label" >Username</label>
+            <input type="text" class="user-input" id="username" name="username">
+            <label for="password" class="login-label">Password</label>
+            <input type="text" class="user-input" id="password" name="password">
+            <button class="submit" type="submit">submit</button>
+        </form>
+        <p>Don't have account yet?</p>
+        <form method="get" action="/create-account">
+            <button type="submit">Create account</button>
+        </form>
+    </div>
+</body>
+</html>
+

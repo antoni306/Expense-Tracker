@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Dodaj transakcję</title>
+  <style>
+    
+  </style>
+</head>
+<body>
+
+    <div id="select-balance" class="visible">
+        <input type="number" id="amount" min="1">
+        <button onclick="addBalance()" id="get-money-btn">add</button>
+    </div>
+    <button id="show">show</button>
+  <script>
+    document.getElementById("plus").addEventListener("click",e=>{
+        document.getElementById("select-balance").classList.toggle("active");
+    });
+  </script>
+
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Toggle classList przykład</title>
+  <style>
+    .box {
+      width: 100px;
+      height: 100px;
+      background-color: lightgray;
+      transition: background-color 0.3s;
+    }
+    .active {
+      background-color: tomato; /* kolor po włączeniu klasy */
+    }
+  </style>
+</head>
+<body>
+  <div class="box"></div>
+  <button id="toggleBtn">Toggle kolor</button>
+
+  <script>
+    const box = document.querySelector(".box");
+    const btn = document.getElementById("toggleBtn");
+
+    btn.addEventListener("click", () => {
+      box.classList.toggle("active");
+    });
+  </script>
+</body>
+</html> -->
+

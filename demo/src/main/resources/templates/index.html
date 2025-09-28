@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/myStyle.css?v=1">
+
+</head>
+<body>
+    <div id="navbar">
+        
+        <a href="#" id="1">History</a>
+        <a href="#" id="2">Add Transaction</a>
+        <a href="#" id="3">Show Statistics</a>
+        <div>
+            <div id="actual-balance">0.0
+            </div>
+            <button id="plus">+</button>
+        </div>
+    </div>
+
+    <div id="select-balance" class="hidden">
+        <input type="number" id="amount" min="1">
+        <button onclick="addBalance()" id="get-money-btn">add</button>
+    </div>
+
+    <div id="user-history" class="hidden myBox">
+            
+    </div>
+
+    
+
+    <div id="add-transaction" class="hidden myBox">
+        <h2>Dodaj transakcję</h2>
+        <form id="transactionForm" method="post" action="/transactions">
+                <label>Data:</label>
+                    <input type="date" name="purchaseDate">
+                <div id="products">
+                    <div class="product">
+                        <label>Kategoria:</label>
+                            <select name="category[]">
+                                <option value="Electronics">Electronics</option>
+                                <option value="Beverages">Beverages</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Health">Health</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Other">Other</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Food">Food</option>
+                                <option value="Pets">Pets</option>
+                                <option value="Housing">Housing</option>
+                                <option value="Education">Education</option>
+                            </select><br>
+                        <label>Cena:</label>
+                            <input type="number" name="price[]" step="0.01" required><br>
+
+                        <label>Ilość:</label>
+                            <input type="number" name="quantity[]" min="1" required><br>
+                        
+                    </div>
+                </div>
+                <button type="button" onclick="addProduct()">+ Dodaj kolejny produkt</button><br>
+                <button type="submit">Zapisz transakcję</button>
+            </form>
+            
+    </div>
+
+    <div id="stats" class="hidden myBox">
+        <div id="statistics-categories" >
+
+        
+        </div>
+        <div id="statistics-monthly" >
+
+        </div>
+    </div>
+    
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.querySelectorAll("a").forEach(element=>{
+            element.addEventListener("click",e=>{
+                var id = e.target.id;
+                var next = '';
+                if(id ==1){
+                    next ="user-history";
+                }else if(id ==2){
+                    next = 'add-transaction';
+                }else{
+                    next = "stats";
+                }
+                var previous =document.querySelector("div.myBox:not(.hidden)");
+                if(previous){
+                    previous.classList.toggle("hidden");
+                }
+                document.getElementById(next).classList.toggle("hidden");
+            });
+        });
+        async function addBalance(){
+            const money = document.getElementById("amount").value;
+            try {
+                const res = await fetch("http://localhost:8080/balance", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                },
+                body: new URLSearchParams({ amount: money }),
+                credentials: "include" // ważne dla sesji
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();              // <- to jest promisa
+                console.log(data);
+                document.getElementById("actual-balance").innerText = data.balance;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById("plus").addEventListener("click",e=>{
+            document.getElementById("select-balance").classList.toggle("hidden");
+        });
+        document.getElementById("transactionForm").addEventListener('submit',async (e)=>{
+            e.preventDefault(); 
+
+            const form = e.currentTarget;
+            const fd = new FormData(form);
+
+            const res = await fetch(form.action, {
+                method: form.method,
+                body: new URLSearchParams(fd) 
+            });
+
+            const result = await res.json();
+            document.getElementById("actual-balance").innerText = result;
+           form.reset;
+        });
+        function addProduct() {
+        const productsDiv = document.getElementById("products");
+        const newProduct = document.createElement("div");
+        newProduct.classList.add("product");
+        newProduct.innerHTML = `
+            <label>Kategoria:</label>
+            <select name="category[]">
+            <option value="Electronics">Electronics</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Health">Health</option>
+            <option value="Travel">Travel</option>
+            <option value="Other">Other</option>
+            <option value="Finance">Finance</option>
+            <option value="Food">Food</option>
+            <option value="Pets">Pets</option>
+            <option value="Housing">Housing</option>
+            <option value="Education">Education</option>
+            </select><br>
+
+            <label>Cena:</label>
+            <input type="number" name="price[]" step="0.01" required><br>
+
+            <label>Ilość:</label>
+            <input type="number" name="quantity[]" min="1" required><br>
+        `;
+        productsDiv.appendChild(newProduct);
+        }
+
+
+        function getChart(canvas,keys,values){
+             new Chart(canvas,{
+                type:"bar",
+                data:{
+                    labels:keys,
+                    datasets:
+                    [
+                        {
+                            label: "Expenses by Category",
+                            data: values,
+                            borderWidth:1
+                        }]
+                },
+                options:{
+                    scales:{
+                        y:{
+                            beginAtZero:true
+                        }
+                    }
+                }
+            });
+        }
+        function getCharts(dataCategory,dataMonth){
+            var canvasCategory = document.createElement("canvas");
+            canvasCategory.setAttribute("id","myCategoryChart");
+            getChart(canvasCategory,Object.keys(dataCategory),Object.values(dataCategory));
+            document.getElementById("statistics-categories").appendChild(canvasCategory);
+
+
+            var canvasMonthly = document.createElement("canvas");
+            canvasMonthly.setAttribute("id","myMonthlySpendingChart");
+            getChart(canvasMonthly,Object.keys(dataMonth),Object.values(dataMonth));
+            document.getElementById("statistics-monthly").appendChild(canvasMonthly);
+        }
+
+        function getLiForTransaction(transaction){
+            var button = document.createElement("button");
+            button.setAttribute("type","button");
+            button.setAttribute("class","collapsible");
+            button.innerText = "Date: "+transaction.purchaseDate+"       Transaction cost: "+transaction.transactionCost;
+            var productsDiv = document.createElement("div");
+            productsDiv.setAttribute("class","content");
+            productsDiv.style.display = "none";
+            var ul = document.createElement("ul");
+            // ul.style.display = "none";
+            var products =transaction.products;
+            for(let i=0;i<products.length;i++){
+                var li = document.createElement("li");
+                li.innerText ='category: ' +products[i].category+", price: "+products[i].pricePerUnit+", quantity: "+products[i].quantity;
+                ul.appendChild(li);
+            }
+            productsDiv.appendChild(ul);
+
+            var result =document.createElement("li");
+            result.appendChild(button);
+            result.appendChild(productsDiv);
+
+            button.addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                content.style.display = "none";
+                } else {
+                content.style.display = "block";
+                }
+
+
+                // console.log("klikam do kurwy nędzy");
+                // this.classList.toggle("active");
+                // productsDiv.classList.toggle("open"); // z CSS jak wyżej
+            });
+            return result;
+        }
+        async function addTransaction(newTransaction){
+            try{
+                 const response = await fetch(
+                    'http://localhost:8080/transactions',
+                     {
+                    method: "post",
+                    headers: 
+                    {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transaction: newTransaction,
+                    })
+                    });
+                if(!response.ok){
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+            }catch(error){
+                var errorBox = document.getElementById("error-container");
+                errorBox.innerText = error.message;
+                errorBox.setAttribute("class","visible");
+            }
+        }
+        async function addToBalance(money){
+            try{
+                 const response = await fetch(
+                    'http://localhost:8080/balance',
+                     {
+                    method: "post",
+                    headers: 
+                    {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        balance: money,
+                    })
+                    }
+                    
+                    
+                        );
+                if(!response.ok){
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+            }catch(error){
+                var errorBox = document.getElementById("error-container");
+                errorBox.innerText = error.message;
+                errorBox.setAttribute("class","visible");
+            }
+        }
+        async function fetchUserHistory(){
+            try{
+                 const response = await fetch('http://localhost:8080/user-details');
+                if(!response.ok){
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+                var ul = document.createElement("ul");
+                var transactions = data.transactions;
+                for(let i=0;i<transactions.length;i++){
+                    ul.appendChild(getLiForTransaction(transactions[i]));
+                }
+                document.getElementById("user-history").innerHTML = '';
+                document.getElementById("user-history").appendChild(ul);
+
+                var balance = data.balance;
+                document.getElementById("actual-balance").innerText = balance;
+
+                getCharts(data.statsCategory,data.statsMonth);
+            }catch(error){
+                // var errorBox = document.getElementById("error-container");
+                // errorBox.innerText = error.message;
+                // errorBox.setAttribute("class","visible");
+                console.log(error);
+            }
+        }
+        fetchUserHistory();
+    </script>
+</body>
+</html>
