@@ -148,13 +148,13 @@ button {
 
 #select-balance {
     border-radius: 15px;
-    width: 200px;
-    height: 80px;
-    background-color: cadetblue;
+    background-color: grey;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    width: fit-content;
 }
+
 
 
 .hidden {
